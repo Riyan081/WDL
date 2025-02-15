@@ -2,15 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import Body from "./components/Body"
+import appStore from './assets/appStore';
+import { Provider } from 'react-redux';
 
 
 
 
 const App =()=>{
   return(
-    <div>
+    <Provider store={appStore}>
      <Body/>
-    </div>
+     </Provider>
+
   );
 };
 
