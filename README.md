@@ -32,3 +32,12 @@ Currently, two official plugins are available:
    -redux toolkit
    npm i -D @reduxjs/toolkit
    npm i react-redux
+
+   
+
+
+   Bugfix:- Signup user display and profile pic update
+   Bugfix:- if user is not logged in redirect to /browser to / login page 
+
+
+   //why api call happens 2 times because the react does extrarender to check for some inconsistency between calls 

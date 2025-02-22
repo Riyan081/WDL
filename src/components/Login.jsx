@@ -6,13 +6,19 @@ import { checkValidData } from "../assets/validate";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile
 } from "firebase/auth";
 import { auth } from "../assets/firebase";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../assets/userSlice";
+
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errorMessage, seterrorMessage] = useState(null);
   const Navigate = useNavigate();
+  const dispatch = useDispatch();
+ 
   const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
@@ -34,10 +40,27 @@ const Login = () => {
         email.current.value,
         password.current.value
       )
+      
         .then((userCredential) => {
           const user = userCredential.user;
-          console.log(user);
-          Navigate("/browse");
+
+          updateProfile(user, {
+            displayName: name.current.value, photoURL: "https://thumbs.dreamstime.com/b/head-pig-face-farm-animal-hand-drawn-vector-illustration-head-pig-face-farm-animal-hand-drawn-vector-108207263.jpg"
+          })
+          .then(() => {
+            // Profile updated!
+            // ...
+            const {uid,email,displayName,photoURL} = auth.currentUser;//to get updated user information
+            dispatch(addUser({uid:uid,email: email,displayName: displayName, photoURL: photoURL}));
+          
+        
+          })
+          .catch((error) => {
+            // An error occurred
+            // ...
+            seterrorMessage(error.message);
+          });
+          
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -55,7 +78,7 @@ const Login = () => {
           // Signed in
           const user = userCredential.user;
           console.log(user);
-          Navigate("/browse");
+         
           // ...
         })
         .catch((error) => {
@@ -130,3 +153,4 @@ const Login = () => {
 };
 
 export default Login;
+
