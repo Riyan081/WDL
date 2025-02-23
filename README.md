@@ -38,6 +38,12 @@ Currently, two official plugins are available:
 
    Bugfix:- Signup user display and profile pic update
    Bugfix:- if user is not logged in redirect to /browser to / login page 
+   -created custom hook
+   -created userSlice
+   -updated store with movie data
+   -updated store with user data
+   -planning or main and sec container 
+   
 
 
    //why api call happens 2 times because the react does extrarender to check for some inconsistency between calls 
