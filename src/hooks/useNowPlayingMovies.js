@@ -16,14 +16,44 @@ const useNowPlayingMovies = () => {
             const dispatch = useDispatch();
         
           const getNowPlayingMovies = async ()=>{
+          console.log("🚀 Starting API call for Now Playing Movies...");
+          console.log("🔑 API Options:", API_OPTIONS);
+          
+          // Test basic network connectivity first
           try {
+            console.log("🌐 Testing basic network connectivity...");
+            const testResponse = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+            console.log("✅ Network test successful:", testResponse.ok);
+          } catch (netError) {
+            console.error("❌ Network connectivity failed:", netError);
+            // If basic network fails, load dummy data immediately
+            const dummyMovies = [
+              {
+                id: 1,
+                original_title: "Stranger Things",
+                overview: "When a young boy disappears, his mother, a police chief and his friends must confront terrifying supernatural forces in order to get him back.",
+                poster_path: "/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg",
+                backdrop_path: "/56v2KjBlU4XaOv9rVYEQypROD7P.jpg"
+              }
+            ];
+            dispatch(addNowPlayingMovies(dummyMovies));
+            return;
+          }
+          
+          try {
+            console.log("📞 Making fetch request to TMDB...");
             const data = await fetch('https://api.themoviedb.org/3/movie/now_playing?page=1', API_OPTIONS);
-            if (!data.ok) throw new Error('API request failed');
+            console.log("📡 Response received:", data.status, data.statusText);
+            
+            if (!data.ok) {
+              throw new Error(`API request failed: ${data.status} ${data.statusText}`);
+            }
+            
             const json = await data.json();
-            console.log("Now Playing Movies:", json.results);
+            console.log("✅ Now Playing Movies SUCCESS:", json.results);
             dispatch(addNowPlayingMovies(json.results));
           } catch (error) {
-            console.error("Error fetching now playing movies:", error);
+            console.error("❌ API Error:", error);
             // Set dummy data if API fails
             const dummyMovies = [
               {
@@ -116,6 +146,7 @@ const useNowPlayingMovies = () => {
           }
         
           useEffect(()=>{
+        console.log("🎬 useNowPlayingMovies hook is running...");
         getNowPlayingMovies();
           },[]);
         
