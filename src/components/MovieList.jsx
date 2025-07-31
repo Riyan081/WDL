@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import MovieCard from "./MovieCard";
 
+// Updated: July 31, 2025 - Netflix Clone with working movie lists
 const MovieList = ({ title, movies }) => {
   console.log(movies);
   return (
