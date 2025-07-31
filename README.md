@@ -1,23 +1,61 @@
-# React + Vite
+# 🎬 Netflix Clone - WDL Project 2025
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **A Modern Netflix Clone Built with React, Firebase & TMDB API**
 
-Currently, two official plugins are available:
+## 📅 **Project Created: July 31, 2025**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🌟 **Live Features**
+- 🔐 **User Authentication** - Firebase Auth (Login/Signup)
+- 🎥 **Movie Streaming Interface** - Netflix-style UI
+- 🔍 **GPT-Powered Search** - Multi-language support
+- 🎬 **Movie Trailers** - Auto-playing background videos
+- 📱 **Responsive Design** - Works on all devices
+- 🎭 **20+ Movies** - Curated content library
 
-# Netflix Clone App - Updated July 31, 2025
+### 🛠️ **Tech Stack**
+```
+Frontend:    React 19 + Vite
+Styling:     Tailwind CSS
+State:       Redux Toolkit  
+Auth:        Firebase Authentication
+API:         TMDB (The Movie Database)
+Routing:     React Router DOM
+Deployment:  Firebase Hosting
+```
 
-## ✨ Latest Features
-- ✅ Login/Signup with Firebase Authentication
-- ✅ Browse Page with 20+ dummy movies
-- ✅ Stranger Things trailer background
-- ✅ Multi-language GPT search support
-- ✅ Error handling for API failures
-- ✅ Responsive design with Tailwind CSS
+### 🚀 **Quick Start**
+```bash
+# Clone repository
+git clone https://github.com/Riyan081/WDL.git
 
-## 🚀 Technologies Used
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### 📸 **Features Showcase**
+- ✅ Netflix-style landing page
+- ✅ Stranger Things trailer on homepage
+- ✅ Movie cards with hover effects
+- ✅ Multi-language support (English, Hindi, Spanish)
+- ✅ GPT search functionality
+- ✅ User profile management
+
+### 🎯 **Application Features**
+- **Authentication**: Sign up/Login with email
+- **Browse Movies**: Scroll through movie collections
+- **Watch Trailers**: Background video player
+- **Search**: GPT-powered movie search
+- **Responsive**: Mobile and desktop friendly
+
+### 👨‍💻 **Developer**
+**Riyan** - Full Stack Developer  
+🔗 GitHub: [@Riyan081](https://github.com/Riyan081)
+
+---
+⭐ **Created in July 2025** - Modern React Development
 - React 19 + Vite
 - Redux Toolkit for state management
 - Firebase for authentication
