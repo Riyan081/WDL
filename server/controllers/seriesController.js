@@ -1,5 +1,104 @@
 import prisma from '../config/database.js';
 
+// Get all episodes for a series
+export const getSeriesEpisodes = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { seasonNumber } = req.query;
+
+    const where = {
+      season: {
+        seriesId: id,
+        ...(seasonNumber && { seasonNumber: parseInt(seasonNumber) })
+      }
+    };
+
+    const episodes = await prisma.episode.findMany({
+      where,
+      include: {
+        season: {
+          select: {
+            id: true,
+            seasonNumber: true,
+            title: true,
+            series: {
+              select: {
+                id: true,
+                title: true,
+                poster: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { season: { seasonNumber: 'asc' } },
+        { episodeNumber: 'asc' }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: episodes
+    });
+  } catch (error) {
+    console.error('Get series episodes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get specific episode with video URL
+export const getEpisodeById = async (req, res) => {
+  try {
+    const { episodeId } = req.params;
+
+    const episode = await prisma.episode.findUnique({
+      where: { id: episodeId },
+      include: {
+        season: {
+          include: {
+            series: {
+              select: {
+                id: true,
+                title: true,
+                poster: true,
+                backdrop: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!episode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Episode not found'
+      });
+    }
+
+    // Increment view count
+    await prisma.episode.update({
+      where: { id: episodeId },
+      data: { viewCount: { increment: 1 } }
+    });
+
+    res.json({
+      success: true,
+      data: episode
+    });
+  } catch (error) {
+    console.error('Get episode error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 export const getAllSeries = async (req, res) => {
   try {
     const {

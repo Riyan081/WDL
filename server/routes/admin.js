@@ -4,7 +4,11 @@ import {
   getAllUsers,
   updateUserStatus,
   deleteUser,
-  getContentStats
+  getContentStats,
+  createOrGetSeason,
+  createEpisode,
+  getAllEpisodes,
+  deleteEpisode
 } from '../controllers/adminController.js';
 import { authenticate, adminOnly } from '../middleware/auth.js';
 
@@ -18,5 +22,11 @@ router.get('/users', getAllUsers);
 router.put('/users/:id/status', updateUserStatus);
 router.delete('/users/:id', deleteUser);
 router.get('/content-stats', getContentStats);
+
+// Episode management routes
+router.post('/series/:id/seasons', createOrGetSeason);
+router.post('/episodes', createEpisode);
+router.get('/episodes', getAllEpisodes);
+router.delete('/episodes/:id', deleteEpisode);
 
 export default router;

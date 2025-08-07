@@ -7,7 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "frontend": "vite",
+    "backend": "cd server && npm start",
+    "backend:dev": "cd server && npm run dev",
+    "server": "cd server && npm start",
+    "start:all": "concurrently \"npm run frontend\" \"npm run backend\" --names \"🎬Frontend,🚀Backend\" --prefix name --prefix-colors \"cyan,yellow\"",
+    "dev:all": "concurrently \"npm run frontend\" \"npm run backend:dev\" --names \"🎬Frontend,🚀Backend\" --prefix name --prefix-colors \"cyan,yellow\"",
+    "install:all": "npm install && cd server && npm install"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",
@@ -25,6 +32,7 @@
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.0",
     "eslint": "^9.19.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.0.0",

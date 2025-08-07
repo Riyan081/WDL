@@ -306,3 +306,178 @@ export const getContentStats = async (req, res) => {
     });
   }
 };
+
+// Create or get season
+export const createOrGetSeason = async (req, res) => {
+  try {
+    const { id: seriesId } = req.params;
+    const { seasonNumber, title, description } = req.body;
+
+    // Check if season already exists
+    let season = await prisma.season.findFirst({
+      where: {
+        seriesId,
+        seasonNumber: parseInt(seasonNumber)
+      }
+    });
+
+    if (!season) {
+      // Create new season
+      season = await prisma.season.create({
+        data: {
+          seriesId,
+          seasonNumber: parseInt(seasonNumber),
+          title: title || `Season ${seasonNumber}`,
+          description: description || `Season ${seasonNumber}`,
+          releaseDate: new Date()
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: season
+    });
+  } catch (error) {
+    console.error('Create season error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Create episode
+export const createEpisode = async (req, res) => {
+  try {
+    const {
+      seasonId,
+      episodeNumber,
+      title,
+      description,
+      duration,
+      videoUrl,
+      thumbnail
+    } = req.body;
+
+    // Check if episode already exists
+    const existingEpisode = await prisma.episode.findFirst({
+      where: {
+        seasonId,
+        episodeNumber: parseInt(episodeNumber)
+      }
+    });
+
+    if (existingEpisode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Episode with this number already exists in this season'
+      });
+    }
+
+    const episode = await prisma.episode.create({
+      data: {
+        seasonId,
+        episodeNumber: parseInt(episodeNumber),
+        title,
+        description,
+        duration: parseInt(duration),
+        videoUrl,
+        thumbnail,
+        airDate: new Date()
+      },
+      include: {
+        season: {
+          include: {
+            series: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: episode
+    });
+  } catch (error) {
+    console.error('Create episode error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get all episodes
+export const getAllEpisodes = async (req, res) => {
+  try {
+    const episodes = await prisma.episode.findMany({
+      include: {
+        season: {
+          include: {
+            series: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { season: { series: { title: 'asc' } } },
+        { season: { seasonNumber: 'asc' } },
+        { episodeNumber: 'asc' }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: episodes
+    });
+  } catch (error) {
+    console.error('Get episodes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Delete episode
+export const deleteEpisode = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const episode = await prisma.episode.findUnique({
+      where: { id }
+    });
+
+    if (!episode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Episode not found'
+      });
+    }
+
+    await prisma.episode.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Episode deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete episode error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};

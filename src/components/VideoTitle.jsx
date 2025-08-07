@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import VideoPlayer from './VideoPlayer';
+import EnhancedVideoPlayer from './EnhancedVideoPlayer';
 
-const VideoTitle = ({ title, overview, movie }) => {
+const VideoTitle = ({ title, overview, movie, series }) => {
     const [showPlayer, setShowPlayer] = useState(false);
+    
+    const content = movie || series;
 
     const handlePlayClick = () => {
-        if (movie) {
+        if (content) {
             setShowPlayer(true);
         }
     };
@@ -34,9 +36,10 @@ const VideoTitle = ({ title, overview, movie }) => {
             </div>
 
             {/* Video Player Modal */}
-            {showPlayer && movie && (
-                <VideoPlayer 
+            {showPlayer && content && (
+                <EnhancedVideoPlayer 
                     movie={movie}
+                    series={series}
                     onClose={handleClosePlayer}
                 />
             )}

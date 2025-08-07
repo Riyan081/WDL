@@ -115,6 +115,11 @@ export const seriesAPI = {
     method: 'POST',
     body: JSON.stringify(episodeData),
   }),
+  
+  getSeriesEpisodes: (seriesId, seasonNumber) => {
+    const params = seasonNumber ? `?seasonNumber=${seasonNumber}` : '';
+    return apiRequest(`/series/${seriesId}/episodes${params}`);
+  },
 };
 
 // User API
@@ -168,6 +173,23 @@ export const adminAPI = {
   }),
   
   getContentStats: (type = 'movies') => apiRequest(`/admin/content-stats?type=${type}`),
+  
+  // Episode management
+  createSeason: (seriesId, seasonData) => apiRequest(`/admin/series/${seriesId}/seasons`, {
+    method: 'POST',
+    body: JSON.stringify(seasonData),
+  }),
+  
+  createEpisode: (episodeData) => apiRequest(`/admin/episodes`, {
+    method: 'POST',
+    body: JSON.stringify(episodeData),
+  }),
+  
+  getAllEpisodes: () => apiRequest('/admin/episodes'),
+  
+  deleteEpisode: (id) => apiRequest(`/admin/episodes/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 // Video Player API (for streaming)

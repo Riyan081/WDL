@@ -10,8 +10,11 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [movies, setMovies] = useState([]);
   const [series, setSeries] = useState([]);
+  const [episodes, setEpisodes] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEpisodeModal, setShowEpisodeModal] = useState(false);
   const [addType, setAddType] = useState('movie'); // 'movie' or 'series'
   const [formData, setFormData] = useState({
     title: '',
@@ -25,6 +28,17 @@ const AdminPanel = () => {
     backdrop: '',
     trailerUrl: '',
     rating: ''
+  });
+
+  const [episodeFormData, setEpisodeFormData] = useState({
+    seriesId: '',
+    seasonNumber: 1,
+    episodeNumber: 1,
+    title: '',
+    description: '',
+    duration: '',
+    videoUrl: '',
+    thumbnail: ''
   });
 
   // Check if user is admin
@@ -41,6 +55,9 @@ const AdminPanel = () => {
       loadMovies();
     } else if (activeTab === 'series') {
       loadSeries();
+    } else if (activeTab === 'episodes') {
+      loadSeries(); // Load series for episode management
+      loadEpisodes();
     }
   }, [activeTab]);
 
@@ -95,6 +112,16 @@ const AdminPanel = () => {
       setSeries([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEpisodes = async () => {
+    try {
+      const response = await adminAPI.getAllEpisodes();
+      setEpisodes(response.data || []);
+    } catch (error) {
+      console.error('Failed to load episodes:', error);
+      setEpisodes([]);
     }
   };
 
@@ -187,6 +214,63 @@ const AdminPanel = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleEpisodeInputChange = (e) => {
+    const { name, value } = e.target;
+    setEpisodeFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddEpisode = async () => {
+    try {
+      setLoading(true);
+      
+      // First, ensure the season exists
+      const seasonResponse = await adminAPI.createSeason(episodeFormData.seriesId, {
+        seasonNumber: parseInt(episodeFormData.seasonNumber),
+        title: `Season ${episodeFormData.seasonNumber}`,
+        description: `Season ${episodeFormData.seasonNumber}`
+      });
+
+      const seasonId = seasonResponse.data?.id;
+
+      if (!seasonId) {
+        throw new Error('Failed to create or find season');
+      }
+
+      // Create the episode
+      await adminAPI.createEpisode({
+        seasonId,
+        episodeNumber: parseInt(episodeFormData.episodeNumber),
+        title: episodeFormData.title,
+        description: episodeFormData.description,
+        duration: parseInt(episodeFormData.duration),
+        videoUrl: episodeFormData.videoUrl,
+        thumbnail: episodeFormData.thumbnail
+      });
+
+      alert('Episode added successfully!');
+      setShowEpisodeModal(false);
+      setEpisodeFormData({
+        seriesId: '',
+        seasonNumber: 1,
+        episodeNumber: 1,
+        title: '',
+        description: '',
+        duration: '',
+        videoUrl: '',
+        thumbnail: ''
+      });
+      loadEpisodes();
+    } catch (error) {
+      console.error('Add episode error:', error);
+      alert('Failed to add episode: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderDashboard = () => {
@@ -373,6 +457,75 @@ const AdminPanel = () => {
     );
   };
 
+  const renderEpisodes = () => {
+    if (loading) return <div className="text-white text-center">Loading...</div>;
+
+    return (
+      <div className="bg-gray-800 rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-white">Episode Management</h3>
+          <button
+            onClick={() => setShowEpisodeModal(true)}
+            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white"
+          >
+            Add Episode
+          </button>
+        </div>
+        
+        {/* Episodes List */}
+        <div className="grid grid-cols-1 gap-4">
+          {Array.isArray(episodes) && episodes.length > 0 ? (
+            episodes.map((episode) => (
+              <div key={episode.id} className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-12 bg-gray-600 rounded overflow-hidden">
+                    {episode.thumbnail ? (
+                      <img src={episode.thumbnail} alt={episode.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-sm">{episode.title}</h4>
+                    <p className="text-gray-400 text-xs">
+                      {episode.season?.series?.title} - S{episode.season?.seasonNumber}E{episode.episodeNumber}
+                    </p>
+                    <p className="text-gray-400 text-xs">{episode.duration} min</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDeleteEpisode(episode.id)}
+                  className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
+                >
+                  Delete
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-8">
+              No episodes found. Click "Add Episode" to create your first episode.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const handleDeleteEpisode = async (episodeId) => {
+    if (window.confirm('Are you sure you want to delete this episode?')) {
+      try {
+        await adminAPI.deleteEpisode(episodeId);
+        alert('Episode deleted successfully!');
+        loadEpisodes();
+      } catch (error) {
+        console.error('Delete episode error:', error);
+        alert('Failed to delete episode');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
@@ -388,7 +541,7 @@ const AdminPanel = () => {
       {/* Navigation */}
       <div className="bg-gray-900 p-4">
         <div className="flex space-x-4">
-          {['dashboard', 'users', 'movies', 'series'].map((tab) => (
+          {['dashboard', 'users', 'movies', 'series', 'episodes'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -410,6 +563,7 @@ const AdminPanel = () => {
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'movies' && renderMovies()}
         {activeTab === 'series' && renderSeries()}
+        {activeTab === 'episodes' && renderEpisodes()}
       </div>
 
       {/* Add/Edit Modal */}
@@ -569,6 +723,151 @@ const AdminPanel = () => {
                   onClick={() => {
                     setShowAddModal(false);
                     resetForm();
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Episode Modal */}
+      {showEpisodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-white mb-4">Add Episode</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAddEpisode();
+            }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">Series*</label>
+                  <select
+                    name="seriesId"
+                    value={episodeFormData.seriesId}
+                    onChange={handleEpisodeInputChange}
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  >
+                    <option value="">Select Series</option>
+                    {series.map((s) => (
+                      <option key={s.id} value={s.id}>{s.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">Season Number*</label>
+                  <input
+                    type="number"
+                    name="seasonNumber"
+                    value={episodeFormData.seasonNumber}
+                    onChange={handleEpisodeInputChange}
+                    min="1"
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">Episode Number*</label>
+                  <input
+                    type="number"
+                    name="episodeNumber"
+                    value={episodeFormData.episodeNumber}
+                    onChange={handleEpisodeInputChange}
+                    min="1"
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">Duration (minutes)*</label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={episodeFormData.duration}
+                    onChange={handleEpisodeInputChange}
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-white text-sm font-bold mb-2">Episode Title*</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={episodeFormData.title}
+                  onChange={handleEpisodeInputChange}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-white text-sm font-bold mb-2">Description*</label>
+                <textarea
+                  name="description"
+                  value={episodeFormData.description}
+                  onChange={handleEpisodeInputChange}
+                  rows="3"
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-white text-sm font-bold mb-2">Video URL (YouTube ID)</label>
+                <input
+                  type="text"
+                  name="videoUrl"
+                  value={episodeFormData.videoUrl}
+                  onChange={handleEpisodeInputChange}
+                  placeholder="e.g., dQw4w9WgXcQ"
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-white text-sm font-bold mb-2">Thumbnail URL</label>
+                <input
+                  type="url"
+                  name="thumbnail"
+                  value={episodeFormData.thumbnail}
+                  onChange={handleEpisodeInputChange}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-4 py-2 rounded text-white font-bold"
+                >
+                  {loading ? 'Creating...' : 'Create Episode'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEpisodeModal(false);
+                    setEpisodeFormData({
+                      seriesId: '',
+                      seasonNumber: 1,
+                      episodeNumber: 1,
+                      title: '',
+                      description: '',
+                      duration: '',
+                      videoUrl: '',
+                      thumbnail: ''
+                    });
                   }}
                   className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white"
                 >

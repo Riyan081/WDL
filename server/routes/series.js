@@ -2,6 +2,8 @@ import express from 'express';
 import {
   getAllSeries,
   getSeriesById,
+  getSeriesEpisodes,
+  getEpisodeById,
   createSeries,
   updateSeries,
   deleteSeries,
@@ -16,6 +18,8 @@ const router = express.Router();
 // Public routes
 router.get('/', getAllSeries);
 router.get('/:id', getSeriesById);
+router.get('/:id/episodes', getSeriesEpisodes);
+router.get('/episodes/:episodeId', getEpisodeById);
 
 // Admin only routes
 router.post('/', authenticate, adminOnly, validateRequest(seriesSchema), createSeries);
