@@ -8,10 +8,31 @@ import { useDispatch } from "react-redux";
 
 const VideoBackground = ({ movieId }) => {
    const trailer = useSelector((store)=>store.movies.trailerVideo);
+   const movies = useSelector((store)=>store.movies.nowPlayingMovies);
 
     const dispatch = useDispatch();
+  
   const getMovieVideos = async () => {
     try {
+      // First check if we have a backend movie with trailerUrl
+      const currentMovie = movies?.find(movie => movie.id === movieId);
+      
+      if (currentMovie?.trailerUrl) {
+        // Extract YouTube video ID from URL
+        let videoId = null;
+        if (currentMovie.trailerUrl.includes('youtube.com/watch?v=')) {
+          videoId = currentMovie.trailerUrl.split('v=')[1]?.split('&')[0];
+        } else if (currentMovie.trailerUrl.includes('youtu.be/')) {
+          videoId = currentMovie.trailerUrl.split('youtu.be/')[1]?.split('?')[0];
+        }
+        
+        if (videoId) {
+          dispatch(addTrailerVideo({ key: videoId }));
+          return;
+        }
+      }
+      
+      // Fallback to TMDB API for dummy data
       const data = await fetch(
         `https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`,
         API_OPTIONS

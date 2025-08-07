@@ -13,11 +13,14 @@ const MainContainer = () =>{
  if(!mainMovie) return null;
 //console.log(mainMovie);
 
-const{original_title,overview,id} = mainMovie;
+// Handle both backend data structure (title, description) and TMDB structure (original_title, overview)
+const title = mainMovie.title || mainMovie.original_title;
+const overview = mainMovie.description || mainMovie.overview;
+const id = mainMovie.id;
 
     return (
         <div>
-          <VideoTitle title={original_title} overview={overview}/>
+          <VideoTitle title={title} overview={overview} movie={mainMovie}/>
             <VideoBackground movieId={id}/>
         </div>
     )
