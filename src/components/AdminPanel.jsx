@@ -15,6 +15,7 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEpisodeModal, setShowEpisodeModal] = useState(false);
+  const [editingEpisode, setEditingEpisode] = useState(null);
   const [addType, setAddType] = useState('movie'); // 'movie' or 'series'
   const [formData, setFormData] = useState({
     title: '',
@@ -224,36 +225,50 @@ const AdminPanel = () => {
     }));
   };
 
-  const handleAddEpisode = async () => {
+  const handleSaveEpisode = async () => {
     try {
       setLoading(true);
       
-      // First, ensure the season exists
-      const seasonResponse = await adminAPI.createSeason(episodeFormData.seriesId, {
-        seasonNumber: parseInt(episodeFormData.seasonNumber),
-        title: `Season ${episodeFormData.seasonNumber}`,
-        description: `Season ${episodeFormData.seasonNumber}`
-      });
+      if (editingEpisode) {
+        // Update existing episode
+        await adminAPI.updateEpisode(editingEpisode.id, {
+          title: episodeFormData.title,
+          description: episodeFormData.description,
+          duration: parseInt(episodeFormData.duration),
+          videoUrl: episodeFormData.videoUrl,
+          thumbnail: episodeFormData.thumbnail
+        });
+        alert('Episode updated successfully!');
+      } else {
+        // Add new episode
+        // First, ensure the season exists
+        const seasonResponse = await adminAPI.createSeason(episodeFormData.seriesId, {
+          seasonNumber: parseInt(episodeFormData.seasonNumber),
+          title: `Season ${episodeFormData.seasonNumber}`,
+          description: `Season ${episodeFormData.seasonNumber}`
+        });
 
-      const seasonId = seasonResponse.data?.id;
+        const seasonId = seasonResponse.data?.id;
 
-      if (!seasonId) {
-        throw new Error('Failed to create or find season');
+        if (!seasonId) {
+          throw new Error('Failed to create or find season');
+        }
+
+        // Create the episode
+        await adminAPI.createEpisode({
+          seasonId,
+          episodeNumber: parseInt(episodeFormData.episodeNumber),
+          title: episodeFormData.title,
+          description: episodeFormData.description,
+          duration: parseInt(episodeFormData.duration),
+          videoUrl: episodeFormData.videoUrl,
+          thumbnail: episodeFormData.thumbnail
+        });
+        alert('Episode added successfully!');
       }
 
-      // Create the episode
-      await adminAPI.createEpisode({
-        seasonId,
-        episodeNumber: parseInt(episodeFormData.episodeNumber),
-        title: episodeFormData.title,
-        description: episodeFormData.description,
-        duration: parseInt(episodeFormData.duration),
-        videoUrl: episodeFormData.videoUrl,
-        thumbnail: episodeFormData.thumbnail
-      });
-
-      alert('Episode added successfully!');
       setShowEpisodeModal(false);
+      setEditingEpisode(null);
       setEpisodeFormData({
         seriesId: '',
         seasonNumber: 1,
@@ -266,8 +281,8 @@ const AdminPanel = () => {
       });
       loadEpisodes();
     } catch (error) {
-      console.error('Add episode error:', error);
-      alert('Failed to add episode: ' + error.message);
+      console.error('Save episode error:', error);
+      alert('Failed to save episode: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -495,12 +510,20 @@ const AdminPanel = () => {
                     <p className="text-gray-400 text-xs">{episode.duration} min</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteEpisode(episode.id)}
-                  className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
-                >
-                  Delete
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditEpisode(episode)}
+                    className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEpisode(episode.id)}
+                    className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           ) : (
@@ -520,10 +543,25 @@ const AdminPanel = () => {
         alert('Episode deleted successfully!');
         loadEpisodes();
       } catch (error) {
-        console.error('Delete episode error:', error);
+        console.error('Failed to delete episode:', error);
         alert('Failed to delete episode');
       }
     }
+  };
+
+  const handleEditEpisode = (episode) => {
+    setEditingEpisode(episode);
+    setEpisodeFormData({
+      seriesId: episode.season?.seriesId || '',
+      seasonNumber: episode.season?.seasonNumber || 1,
+      episodeNumber: episode.episodeNumber,
+      title: episode.title,
+      description: episode.description,
+      duration: episode.duration.toString(),
+      videoUrl: episode.videoUrl || '',
+      thumbnail: episode.thumbnail || ''
+    });
+    setShowEpisodeModal(true);
   };
 
   return (
@@ -738,10 +776,12 @@ const AdminPanel = () => {
       {showEpisodeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-4">Add Episode</h3>
+            <h3 className="text-xl font-bold text-white mb-4">
+              {editingEpisode ? 'Edit Episode' : 'Add Episode'}
+            </h3>
             <form onSubmit={(e) => {
               e.preventDefault();
-              handleAddEpisode();
+              handleSaveEpisode();
             }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -852,12 +892,13 @@ const AdminPanel = () => {
                   disabled={loading}
                   className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-4 py-2 rounded text-white font-bold"
                 >
-                  {loading ? 'Creating...' : 'Create Episode'}
+                  {loading ? (editingEpisode ? 'Updating...' : 'Creating...') : (editingEpisode ? 'Update Episode' : 'Create Episode')}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowEpisodeModal(false);
+                    setEditingEpisode(null);
                     setEpisodeFormData({
                       seriesId: '',
                       seasonNumber: 1,

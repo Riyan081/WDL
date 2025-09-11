@@ -8,6 +8,7 @@ import {
   createOrGetSeason,
   createEpisode,
   getAllEpisodes,
+  updateEpisode,
   deleteEpisode
 } from '../controllers/adminController.js';
 import { authenticate, adminOnly } from '../middleware/auth.js';
@@ -27,6 +28,7 @@ router.get('/content-stats', getContentStats);
 router.post('/series/:id/seasons', createOrGetSeason);
 router.post('/episodes', createEpisode);
 router.get('/episodes', getAllEpisodes);
+router.put('/episodes/:id', updateEpisode);
 router.delete('/episodes/:id', deleteEpisode);
 
 export default router;

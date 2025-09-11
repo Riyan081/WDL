@@ -6,6 +6,8 @@ export const getSeriesEpisodes = async (req, res) => {
     const { id } = req.params;
     const { seasonNumber } = req.query;
 
+    console.log('🎬 getSeriesEpisodes called with:', { id, seasonNumber });
+
     const where = {
       season: {
         seriesId: id,
@@ -36,6 +38,9 @@ export const getSeriesEpisodes = async (req, res) => {
         { episodeNumber: 'asc' }
       ]
     });
+
+    console.log('🎬 Found episodes for series', id, ':', episodes.length);
+    console.log('🎬 First episode:', episodes[0]?.title);
 
     res.json({
       success: true,

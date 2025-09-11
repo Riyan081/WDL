@@ -187,6 +187,11 @@ export const adminAPI = {
   
   getAllEpisodes: () => apiRequest('/admin/episodes'),
   
+  updateEpisode: (id, episodeData) => apiRequest(`/admin/episodes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(episodeData),
+  }),
+  
   deleteEpisode: (id) => apiRequest(`/admin/episodes/${id}`, {
     method: 'DELETE',
   }),

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { videoAPI } from '../services/api';
+import { videoAPI, seriesAPI } from '../services/api';
 
 const EnhancedVideoPlayer = ({ movie, series, episode, onClose }) => {
   console.log('🎬 EnhancedVideoPlayer rendered with:', { movie: movie?.title, series: series?.title, episode: episode?.title });
@@ -16,6 +16,14 @@ const EnhancedVideoPlayer = ({ movie, series, episode, onClose }) => {
   const isEpisode = !!currentEpisode;
   const isSeries = !!series;
 
+  console.log('🎬 Content determination:', {
+    content: content?.title,
+    contentVideoUrl: content?.videoUrl,
+    contentTrailerUrl: content?.trailerUrl,
+    isEpisode,
+    isSeries
+  });
+
   // Extract YouTube video ID from trailer URL
   const getYouTubeVideoId = (url) => {
     if (!url) return null;
@@ -27,53 +35,61 @@ const EnhancedVideoPlayer = ({ movie, series, episode, onClose }) => {
     return null;
   };
 
+
   const youtubeVideoId = getYouTubeVideoId(content?.trailerUrl || content?.videoUrl);
+  
+  console.log('🎬 YouTube video ID extraction:', {
+    trailerUrl: content?.trailerUrl,
+    videoUrl: content?.videoUrl,
+    youtubeVideoId
+  });
 
   // Fetch series data and episodes if we're dealing with a series
   useEffect(() => {
     const fetchSeriesEpisodes = async () => {
       if (series) {
         setLoading(true);
+        // Reset episodes when series changes
+        setEpisodes([]);
+        setCurrentEpisode(episode || null);
+        
         try {
           setSeriesData(series);
           
-          // Fetch real episodes from API
-          const response = await fetch(`http://localhost:5000/api/series/${series.id}/episodes`);
-          const data = await response.json();
+          console.log('🎬 Fetching episodes for series:', series.title, 'ID:', series.id);
+          console.log('🎬 Series object:', series);
           
-          if (data.success) {
-            setEpisodes(data.data);
+          // Use the proper API function
+          const response = await seriesAPI.getSeriesEpisodes(series.id);
+          
+          console.log('🎬 API Response for', series.title, ':', response);
+          
+          if (response.success && response.data) {
+            console.log('🎬 Episodes fetched for', series.title, ':', response.data.length, 'episodes');
+            console.log('🎬 First episode:', response.data[0]?.title);
+            console.log('🎬 All episodes:', response.data.map(ep => ep.title));
+            setEpisodes(response.data);
             
             // If no current episode is set, set the first episode
-            if (!currentEpisode && data.data.length > 0) {
-              const firstEpisode = data.data[0];
+            if (!currentEpisode && response.data.length > 0) {
+              const firstEpisode = response.data[0];
               setCurrentEpisode(firstEpisode);
               console.log('🎬 Set first episode as current:', firstEpisode.title);
             }
+          } else {
+            console.log('🎬 No episodes found for', series.title);
+            setEpisodes([]);
           }
         } catch (error) {
-          console.error('Error fetching episodes:', error);
-          // Fallback to mock episodes if API fails
-          const mockEpisodes = [
-            {
-              id: 1,
-              title: "Episode 1: Pilot",
-              description: "The beginning of an epic journey...",
-              episodeNumber: 1,
-              duration: 45,
-              videoUrl: "https://www.youtube.com/watch?v=mnd7sFt5c3A",
-              thumbnail: "https://images.unsplash.com/photo-1596727147705-61a532a659bd?w=800",
-              season: { seasonNumber: 1, series: series }
-            }
-          ];
-          setEpisodes(mockEpisodes);
+          console.error('Error fetching episodes for', series.title, ':', error);
+          setEpisodes([]);
         }
         setLoading(false);
       }
     };
 
     fetchSeriesEpisodes();
-  }, [series]);
+  }, [series?.id, episode]); // Re-run when series ID or episode changes
 
   useEffect(() => {
     // Track watch history

@@ -63,6 +63,7 @@ const MovieList = ({ title, movies, isSeries = false }) => {
             isSeries 
           })}
           <EnhancedVideoPlayer 
+            key={selectedContent?.id} // Force remount when content changes
             movie={!isSeries ? selectedContent : null}
             series={isSeries ? selectedContent : null}
             onClose={handleClosePlayer}

@@ -38,6 +38,7 @@ const VideoTitle = ({ title, overview, movie, series }) => {
             {/* Video Player Modal */}
             {showPlayer && content && (
                 <EnhancedVideoPlayer 
+                    key={content?.id} // Force remount when content changes
                     movie={movie}
                     series={series}
                     onClose={handleClosePlayer}

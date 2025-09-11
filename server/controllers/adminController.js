@@ -449,6 +449,64 @@ export const getAllEpisodes = async (req, res) => {
   }
 };
 
+// Update episode
+export const updateEpisode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, duration, videoUrl, thumbnail } = req.body;
+
+    const episode = await prisma.episode.findUnique({
+      where: { id }
+    });
+
+    if (!episode) {
+      return res.status(404).json({
+        success: false,
+        message: 'Episode not found'
+      });
+    }
+
+    const updatedEpisode = await prisma.episode.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        duration,
+        videoUrl,
+        thumbnail
+      },
+      include: {
+        season: {
+          select: {
+            id: true,
+            seasonNumber: true,
+            title: true,
+            series: {
+              select: {
+                id: true,
+                title: true,
+                poster: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Episode updated successfully',
+      data: updatedEpisode
+    });
+  } catch (error) {
+    console.error('Update episode error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 // Delete episode
 export const deleteEpisode = async (req, res) => {
   try {
