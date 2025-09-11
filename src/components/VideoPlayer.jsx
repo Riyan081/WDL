@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { videoAPI } from '../services/api';
+import { videoAPI, seriesAPI } from '../services/api';
 
 const VideoPlayer = ({ movie, series, episode, onClose }) => {
   const [showControls, setShowControls] = useState(true);
@@ -37,15 +37,14 @@ const VideoPlayer = ({ movie, series, episode, onClose }) => {
           setSeriesData(series);
           
           // Fetch real episodes from API
-          const response = await fetch(`http://localhost:5000/api/series/${series.id}/episodes`);
-          const data = await response.json();
+          const response = await seriesAPI.getSeriesEpisodes(series.id);
           
-          if (data.success) {
-            setEpisodes(data.data);
+          if (response.success && response.data) {
+            setEpisodes(response.data);
             
             // If no current episode is set, set the first episode
-            if (!currentEpisode && data.data.length > 0) {
-              setCurrentEpisode(data.data[0]);
+            if (!currentEpisode && response.data.length > 0) {
+              setCurrentEpisode(response.data[0]);
             }
           }
         } catch (error) {

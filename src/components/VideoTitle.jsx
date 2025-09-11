@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import EnhancedVideoPlayer from './EnhancedVideoPlayer';
+import VideoPlayer from './VideoPlayer';
 
 const VideoTitle = ({ title, overview, movie, series }) => {
     const [showPlayer, setShowPlayer] = useState(false);
@@ -37,8 +37,8 @@ const VideoTitle = ({ title, overview, movie, series }) => {
 
             {/* Video Player Modal */}
             {showPlayer && content && (
-                <EnhancedVideoPlayer 
-                    key={content?.id} // Force remount when content changes
+                <VideoPlayer 
+                    key={content?.id}
                     movie={movie}
                     series={series}
                     onClose={handleClosePlayer}
