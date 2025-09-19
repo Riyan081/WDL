@@ -188,8 +188,20 @@ const AdminPanel = () => {
         genres: formData.genres.split(',').map(g => g.trim()),
         cast: formData.cast.split(',').map(c => c.trim()),
         rating: parseFloat(formData.rating) || 0,
-        status: 'PUBLISHED'
+        status: 'PUBLISHED',
+        // Clean up empty URL fields
+        poster: formData.poster?.trim() || undefined,
+        backdrop: formData.backdrop?.trim() || undefined,
+        trailerUrl: formData.trailerUrl?.trim() || undefined,
+        videoUrl: formData.videoUrl?.trim() || undefined
       };
+
+      // Remove undefined values to avoid sending empty strings
+      Object.keys(submitData).forEach(key => {
+        if (submitData[key] === undefined || submitData[key] === '') {
+          delete submitData[key];
+        }
+      });
 
       if (addType === 'movie') {
         await moviesAPI.createMovie(submitData);

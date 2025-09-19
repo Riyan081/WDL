@@ -21,10 +21,12 @@ export const movieSchema = z.object({
   genres: z.array(z.string()).min(1, 'At least one genre is required'),
   director: z.string().min(1, 'Director is required'),
   cast: z.array(z.string()).min(1, 'At least one cast member is required'),
-  poster: z.string().url().optional(),
-  backdrop: z.string().url().optional(),
-  trailerUrl: z.string().url().optional(),
-  videoUrl: z.string().url().optional(),
+  poster: z.string().url().optional().or(z.literal('')),
+  backdrop: z.string().url().optional().or(z.literal('')),
+  trailerUrl: z.string().url().optional().or(z.literal('')),
+  videoUrl: z.string().url().optional().or(z.literal('')),
+  rating: z.number().min(0).max(10).optional(),
+  status: z.string().optional(),
 });
 
 // Series Validations
@@ -35,10 +37,12 @@ export const seriesSchema = z.object({
   genres: z.array(z.string()).min(1, 'At least one genre is required'),
   director: z.string().min(1, 'Director is required'),
   cast: z.array(z.string()).min(1, 'At least one cast member is required'),
-  poster: z.string().url().optional(),
-  backdrop: z.string().url().optional(),
-  trailerUrl: z.string().url().optional(),
-  totalSeasons: z.number().min(1).default(1),
+  poster: z.string().url().optional().or(z.literal('')),
+  backdrop: z.string().url().optional().or(z.literal('')),
+  trailerUrl: z.string().url().optional().or(z.literal('')),
+  totalSeasons: z.number().min(1).optional().default(1),
+  rating: z.number().min(0).max(10).optional(),
+  status: z.string().optional(),
 });
 
 // Episode Validations

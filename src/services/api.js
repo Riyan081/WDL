@@ -25,6 +25,11 @@ const apiRequest = async (endpoint, options = {}) => {
     const data = await response.json();
     
     if (!response.ok) {
+      // Show detailed validation errors if available
+      if (data.errors && Array.isArray(data.errors)) {
+        const errorMessages = data.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
+        throw new Error(`Validation failed:\n${errorMessages}`);
+      }
       throw new Error(data.message || 'Something went wrong');
     }
     
