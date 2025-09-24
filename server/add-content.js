@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+ 
+
 
 const movies = [
   // Action Movies
